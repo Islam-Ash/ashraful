@@ -1,0 +1,266 @@
+﻿@model ItemListModel
+@{
+	ViewData["Title"] = "Items";
+}
+
+@section Styles
+{
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/css/custom.css" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+}
+
+@section Scripts
+{
+	<script src="~/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/jszip/jszip.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+	<script>
+		var table; // Declare the table variable globally
+
+		$(function () {
+			// Initialize the DataTable
+			table = $("#itemsTable").DataTable({
+				processing: true,
+				serverSide: true,
+				responsive: true,
+				lengthChange: true,
+				autoWidth: false,
+				lengthMenu: [
+					[10, 25, 50, -1],
+					[10, 25, 50, 'All']
+				],
+				ajax: {
+					url: "/Admin/Item/GetItemJsonData",
+					type: "POST",
+					contentType: "application/json",
+					dataType: "json",
+					data: function (d) {
+						d.SearchItem = {
+							Name: $("#SearchItem_Name").val(),
+							Barcode: $("#SearchItem_Barcode").val(),
+							CategoryId: $("#SearchItem_CategoryId").val(),
+							PriceStartFrom: $("#SearchItem_PriceStartFrom").val(),
+							PriceStartTo: $("#SearchItem_PriceStartTo").val()
+						};  // Add search data if needed
+						return JSON.stringify(d);
+					}
+				},
+				columnDefs: [
+					{
+						targets: 0, // Picture column
+						orderable: false,
+						render: function (data, type, row) {
+							return `<img src="${data}" alt="Item Image" style="width: 50px; height: 50px;" />`;
+						}
+					},
+					{
+						targets: 8, // Action column
+						orderable: false,
+						render: function (data, type, row) {
+							return `
+																<div style="text-align: right;">
+																	<button type="button" class="btn btn-outline-info btn-sm" style="margin-right: 5px;" onclick="window.location.href='/admin/item/update/${data}'">
+																		<i class="fas fa-pencil-alt"></i>
+																	</button>
+																	<button type="button" class="btn btn-outline-danger btn-sm show-bs-modal" data-id='${data}'>
+																		<i class="fas fa-trash"></i>
+																	</button>
+																</div>`;
+						}
+					}
+				],
+				columns: [
+					{ title: "Picture" },
+					{ title: "Item Name" },
+					{ title: "Barcode" },
+					{ title: "Category" },
+					{ title: "Selling Price" },
+					{ title: "Selling Tax (%)" },
+					{ title: "Stock" },
+					{ title: "Status" },
+					{ title: "Action", className: "text-right" }
+				],
+				dom: '<"top">rt<"bottom"il><"clear">',
+				language: {
+					lengthMenu: "Items per page: _MENU_"
+				},
+				infoCallback: function (settings, start, end, max, total, pre) {
+					return `Total Items: ${total}`;
+				},
+				ordering: true,
+				order: [] // No default order
+			});
+		});
+		// Validate input fields before making the DataTable AJAX call
+		function validateInputs() {
+			var isValid = true;
+			var priceStartFrom = $("#SearchItem_PriceStartFrom").val();
+			var priceStartTo = $("#SearchItem_PriceStartTo").val();
+
+			// Check if PriceStartFrom is a valid number
+			if (priceStartFrom && isNaN(priceStartFrom)) {
+				toastr.error("Price Start From must be a valid number.");
+				isValid = false;
+			}
+
+			// Check if PriceStartTo is a valid number
+			if (priceStartTo && isNaN(priceStartTo)) {
+				toastr.error("Price Start To must be a valid number.");
+				isValid = false;
+			}
+
+			return isValid;
+		}
+
+		// Event listener for input changes
+		$("#SearchItem_Name, #SearchItem_Barcode, #SearchItem_CategoryId, #SearchItem_PriceStartFrom, #SearchItem_PriceStartTo").on('keyup change', function () {
+			if (validateInputs()) {
+				table.ajax.reload(null, false); // Reload the table without resetting the paging
+			}
+		});
+
+		// Show confirmation modal for delete
+		$('#itemsTable').on('click', '.show-bs-modal', function (event) {
+			let id = $(this).data("id");
+			let modal = $("#modal-default");
+			modal.find('.modal-body p').text('Do you confirm to delete this?');
+			$("#deleteId").val(id);
+			$("#deleteForm").attr("action", "/admin/item/delete");
+			modal.modal('show');
+		});
+
+		// Handle delete confirmation
+		$("#deleteButton").click(function (event) {
+			event.preventDefault();
+
+			var form = $("#deleteForm");
+			var actionUrl = form.attr('action');
+			var id = $("#deleteId").val();
+
+			$.ajax({
+				url: actionUrl,
+				method: "POST",
+				data: {
+					id: id,
+					__RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+				},
+				success: function (response) {
+					if (response.success) {
+						toastr.success(response.message);
+						$('#modal-default').modal('hide');
+						table.ajax.reload(null, false); // Reload the table to reflect deletion
+					} else {
+						toastr.error("An error occurred while deleting the item.");
+					}
+				},
+				error: function () {
+					toastr.error("An error occurred while processing the request.");
+				}
+			});
+		});
+
+
+		$(document).ready(function () {
+		@if (TempData["SuccessMessage"] != null)
+		{
+			<text>
+					toastr.success('@TempData["SuccessMessage"]');
+			</text>
+		}
+		});
+	</script>
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+	<div class="container-fluid">
+		<div class="row mb-2">
+			<div class="col-sm-6">
+				<h4>Item List</h4>
+			</div>
+			<div class="col-sm-6">
+				<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item">
+						<a class="btn btn-info float-sm-right ml-2" asp-area="Admin" asp-controller="Item" asp-action="Create">
+							+Add
+						</a>
+					</li>
+				</ol>
+			</div>
+		</div>
+	</div><!-- /.container-fluid -->
+</section>
+<section class="content">
+	<div class="card card-info">
+
+		<div class="card-body">
+			<div class="row">
+				<div class="col-sm-3">
+					<div class="form-group">
+						<input type="text" asp-for="SearchItem.Name" class="form-control" placeholder="Item Name" />
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<input type="text" asp-for="SearchItem.Barcode" class="form-control" placeholder="Barcode" />
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<div class="form-group">
+						<select asp-for="SearchItem.CategoryId" asp-items="Model.Categories" class="form-control">
+							<option value="">Select Category</option> <!-- Placeholder for the dropdown -->
+						</select>
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<input type="text" asp-for="SearchItem.PriceStartFrom" class="form-control" placeholder="Price Start From" />
+					</div>
+				</div>
+				<div class="col-sm-3">
+					<div class="form-group">
+						<input type="text" asp-for="SearchItem.PriceStartTo" class="form-control" placeholder="Price Start To" />
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<partial name="_ResponsePartial" />
+		<partial name="_ModalPartial" />
+
+		<table id="itemsTable" class="table table-bordered table-striped custom-table">
+			<thead>
+				<tr>
+					<th>Picture</th>
+					<th>Item Name</th>
+					<th>Barcode</th>
+					<th>Category</th>
+					<th>Selling Price</th>
+					<th>Tax</th>
+					<th>Stock</th>
+					<th>Status</th>
+					<th class="text-right">Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!-- Table rows will be dynamically generated by the DataTable AJAX call -->
+			</tbody>
+		</table>
+	</div>
+</section>

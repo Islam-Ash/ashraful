@@ -1,0 +1,201 @@
+﻿@model ServiceUpdateModel
+
+@{
+	ViewData["Title"] = "Update Service";
+}
+
+<!-- Main content -->
+<section class="content">
+	<div class="card card-info">
+		<div class="card-header">
+			<h3 class="card-title">Update Service</h3>
+		</div>
+		<div class="row">
+
+			<div class="card-body">
+
+				<!-- form start -->
+				<form asp-action="Update" method="post">
+					@Html.AntiForgeryToken()
+
+					<!-- TempData messages -->
+					@if (TempData["ResponseMessage"] is ResponseModel responseMessage)
+					{
+						<div class="alert alert-@responseMessage.Type" role="alert">
+							@responseMessage.Message
+						</div>
+					}
+
+					<div asp-validation-summary="All" class="text-danger"></div>
+
+					<div class="card-body">
+						<!-- Service Name -->
+						<div class="form-group">
+							<label asp-for="Name">Service Name<span class="text-danger">*</span></label>
+							<input asp-for="Name" class="form-control"  />
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+
+						<!-- Tax Category -->
+						<div class="form-group">
+							<label asp-for="TaxCategoryId">Tax Category<span class="text-danger">*</span></label>
+							<select asp-for="TaxCategoryId" class="form-control" >
+								<option value="">-- Select Tax Category --</option>
+
+								@foreach (var taxCategory in Model.TaxCategoriesForDropdown)
+								{
+									<option value="@taxCategory.Id" data-percentage="@taxCategory.Percentage">@taxCategory.Name</option>
+								}
+
+							</select>
+							<span asp-validation-for="TaxCategoryId" class="text-danger"></span>
+						</div>
+
+						<!-- Purchase Information -->
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="isPurchased" name="IsPurchased" value="true" @(Model.IsPurchased ? "checked" : "") />
+									<input type="hidden" name="IsPurchased" value="false" />
+									<label class="form-check-label" for="isPurchased" style="color: #495057;">Do you purchase this item?</label>
+								</div>
+
+								<div class="form-group">
+									<label for="buyingPrice" style="color: #495057;">Buying Price<span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="buyingPrice" name="BuyingPrice" min="0" value="@Model.BuyingPrice" required style="border: 1px solid #ced4da;" />
+									<span asp-validation-for="BuyingPrice" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="isBuyingPriceInclusive" name="IsBuyingPriceTaxInclusive" value="true" @(Model.IsBuyingPriceTaxInclusive ? "checked" : "") />
+									<input type="hidden" name="IsBuyingPriceTaxInclusive" value="false" />
+									<label class="form-check-label" for="isBuyingPriceInclusive" style="color: #495057;">Is Buying Price Tax Inclusive?</label>
+								</div>
+
+								<div class="form-group">
+									<label for="buyingPriceTaxed" style="color: #495057;">Buying Price + Tax (৳)<span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="buyingPriceTaxed" name="BuyingPriceTaxed" min="0" value="@Model.BuyingPriceTaxed" readonly required style="border: 1px solid #ced4da;" />
+									<span asp-validation-for="BuyingPriceTaxed" class="text-danger"></span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Selling Information -->
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="isSold" name="IsSold" value="true" @(Model.IsSold ? "checked" : "") />
+									<input type="hidden" name="IsSold" value="false" />
+									<label class="form-check-label" for="isSold" style="color: #495057;">Do you sell this item?</label>
+								</div>
+
+								<div class="form-group">
+									<label for="sellingPrice" style="color: #495057;">Selling Price<span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="sellingPrice" name="SellingPrice" min="0" value="@Model.SellingPrice" required style="border: 1px solid #ced4da;" />
+									<span asp-validation-for="SellingPrice" class="text-danger"></span>
+								</div>
+							</div>
+
+							<div class="col-md-6">
+								<div class="form-check">
+									<input class="form-check-input" type="checkbox" id="isSellingPriceInclusive" name="IsSellingPriceTaxInclusive" value="true" @(Model.IsSellingPriceTaxInclusive ? "checked" : "") />
+									<input type="hidden" name="IsSellingPriceTaxInclusive" value="false" />
+									<label class="form-check-label" for="isSellingPriceInclusive" style="color: #495057;">Is Selling Price Tax Inclusive?</label>
+								</div>
+
+								<div class="form-group">
+									<label for="sellingPriceTaxed" style="color: #495057;">Selling Price + Tax (৳)<span class="text-danger">*</span></label>
+									<input type="number" class="form-control" id="sellingPriceTaxed" name="SellingPriceTaxed" min="0" value="@Model.SellingPriceTaxed" readonly required style="border: 1px solid #ced4da;" />
+									<span asp-validation-for="SellingPriceTaxed" class="text-danger"></span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Description -->
+						<div class="form-group">
+							<label asp-for="Description" style="color: #495057;">Description</label>
+							<textarea asp-for="Description" class="form-control" rows="3" style="border: 1px solid #ced4da;">@Model.Description</textarea>
+							<span asp-validation-for="Description" class="text-danger"></span>
+						</div>
+					</div>
+
+					<div class="card-footer">
+						<button type="submit" class="btn btn-info btn-flat">Update</button>
+						<a asp-action="Index" class="btn btn-danger">Cancel</a>
+					</div>
+				</form>
+			</div>
+
+		</div>
+	</div>
+</section>
+
+@section Scripts
+{
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+
+	<script>
+		$(document).ready(function () {
+			function calculatePrice(isInclusive, price, taxRate) {
+				if (taxRate === 0) return price.toFixed(2);
+				if (isInclusive) return (price / (1 + taxRate)).toFixed(2);
+				return (price * (1 + taxRate)).toFixed(2);
+			}
+
+			function getTaxRate() {
+				var selectedOption = $('#TaxCategoryId option:selected');
+				var percentage = parseFloat(selectedOption.data('percentage')) || 0;
+				return percentage / 100;
+			}
+
+			function toggleTaxFields() {
+				var taxRate = getTaxRate();
+				if (taxRate === 0) {
+					$('#isBuyingPriceInclusive').closest('.form-check').hide();
+					$('#buyingPriceTaxed').closest('.form-group').hide();
+					$('#isSellingPriceInclusive').closest('.form-check').hide();
+					$('#sellingPriceTaxed').closest('.form-group').hide();
+				} else {
+					$('#isBuyingPriceInclusive').closest('.form-check').show();
+					$('#buyingPriceTaxed').closest('.form-group').show();
+					$('#isSellingPriceInclusive').closest('.form-check').show();
+					$('#sellingPriceTaxed').closest('.form-group').show();
+				}
+			}
+
+			$('#buyingPrice, #buyingPriceTaxed, #isBuyingPriceInclusive, #TaxCategoryId').on('input change', function (e) {
+				var buyingPrice = parseFloat($('#buyingPrice').val()) || 0;
+				var buyingPriceTaxed = parseFloat($('#buyingPriceTaxed').val()) || 0;
+				var isInclusive = $('#isBuyingPriceInclusive').is(':checked');
+				var taxRate = getTaxRate();
+
+				if (e.target.id === 'buyingPriceTaxed' && isInclusive) {
+					$('#buyingPrice').val(calculatePrice(true, buyingPriceTaxed, taxRate));
+				} else {
+					$('#buyingPriceTaxed').val(calculatePrice(isInclusive, buyingPrice, taxRate));
+				}
+			});
+
+			$('#sellingPrice, #sellingPriceTaxed, #isSellingPriceInclusive, #TaxCategoryId').on('input change', function (e) {
+				var sellingPrice = parseFloat($('#sellingPrice').val()) || 0;
+				var sellingPriceTaxed = parseFloat($('#sellingPriceTaxed').val()) || 0;
+				var isInclusive = $('#isSellingPriceInclusive').is(':checked');
+				var taxRate = getTaxRate();
+
+				if (e.target.id === 'sellingPriceTaxed' && isInclusive) {
+					$('#sellingPrice').val(calculatePrice(true, sellingPriceTaxed, taxRate));
+				} else {
+					$('#sellingPriceTaxed').val(calculatePrice(isInclusive, sellingPrice, taxRate));
+				}
+			});
+
+			$('#TaxCategoryId').on('change', toggleTaxFields);
+			toggleTaxFields();
+		});
+	</script>
+}
+

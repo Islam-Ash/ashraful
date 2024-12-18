@@ -1,0 +1,193 @@
+﻿@model DevSkill.Inventory.Web.Areas.Admin.Models.StockAdjustmentViewModel
+
+@{
+	ViewData["Title"] = "Create Stock Adjustment";
+}
+
+<section class="content">
+	<div class="card card-info">
+		<div class="card-header">
+			<h3 class="card-title">Create Stock Adjustment</h3>
+		</div>
+		<div class="card-body">
+			<form asp-antiforgery="true" asp-area="Admin" asp-controller="StockItem" asp-action="Create">
+				<div class="row">
+					<div class="col-md-2">
+						<div class="form-group">
+							<input type="datetime-local" class="form-control" id="Date" name="Date" value="@Model.Date.ToString("yyyy-MM-ddTHH:mm")" />
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+
+							<div class="input-group">
+
+								<select id="ReasonId" name="ReasonId" class="form-control" asp-items="Model.Reasons">
+									<option value="">Select Reason</option>
+								</select>
+								<span asp-validation-for="ReasonId" class="text-danger"></span>
+								<div class="input-group-append">
+									<button type="button" class="btn btn-info btn-flat" data-toggle="modal" data-target="#addReasonModal">+Add</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-5">
+						<div class="form-group">
+
+							<select id="WarehouseId" name="WarehouseId" class="form-control" asp-items="Model.Warehouses" onchange="onWarehouseChange()">
+								<option value="">Select Warehouse</option>
+							</select>
+							<span asp-validation-for="WarehouseId" class="text-danger"></span>
+						</div>
+					</div>
+
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="ItemId">Stock Item </label>
+							<select asp-for="ItemId" asp-items="Model.Items" class="form-control" id="ItemId">
+								<option value="">Select Stock Item</option>
+							</select>
+							<span asp-validation-for="ItemId" class="text-danger"></span>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label for="Quantity">Quantity</label>
+							<input type="number" class="form-control" id="Quantity" name="Quantity" value="0" />
+						</div>
+					</div>
+					<div class="col_md-4">
+						<div class="form-group">
+							<label for="AdjustedBy">Adjusted By</label>
+							<input type="text" class="form-control" id="AdjustedBy" name="AdjustedBy" value="@Model.AdjustedBy" readonly />
+						</div>
+					</div>
+
+				</div>
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="form-group">
+							<label for="Note">Note</label>
+							<textarea class="form-control" id="Note" name="Note"></textarea>
+						</div>
+					</div>
+
+				</div>
+				<button type="submit" class="btn btn-info btn-flat">Submit</button>
+				<a asp-action="StockAdjustmentIndex" class="btn btn-danger">Cancel</a>
+			</form>
+		</div>
+	</div>
+</section>
+
+<!-- Modal for Adding Reason -->
+<div class="modal fade" id="addReasonModal" tabindex="-1" role="dialog" aria-labelledby="addReasonModalLabel" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addReasonModalLabel">Add New Reason</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form id="addReasonForm">
+					<div class="form-group">
+						<label for="newReasonName">Reason Name</label>
+						<input type="text" class="form-control" id="newReasonName" name="newReasonName" required />
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+				<button type="button" class="btn btn-info btn-flat" id="saveReasonBtn">Save</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		async function onWarehouseChange() {
+			const warehouseId = document.getElementById('WarehouseId').value;
+			const itemSelect = document.getElementById('ItemId');
+
+			// Clear existing items
+			itemSelect.innerHTML = '<option value="">Select Stock Item</option>';
+
+			if (!warehouseId) {
+				return;
+			}
+
+			try {
+				// Fetch items by warehouse via AJAX
+				const response = await fetch(`/Admin/StockItem/GetItemsByWarehouse?warehouseId=${warehouseId}`);
+				const data = await response.json();
+
+				if (Array.isArray(data)) {
+					if (data.length === 0) {
+						itemSelect.innerHTML = '<option value="">No items available in this warehouse</option>';
+					} else {
+						// Populate the item dropdown with item name and quantity
+						data.forEach(item => {
+							const optionText = `${item.name} (Qty: ${item.quantity ?? 0})`;
+							const newOption = document.createElement('option');
+							newOption.value = item.id;
+							newOption.text = optionText;
+							itemSelect.appendChild(newOption);
+						});
+					}
+				} else {
+					console.error('Unexpected data format:', data);
+					itemSelect.innerHTML = '<option value="">Error fetching items</option>';
+				}
+			} catch (error) {
+				console.error('Error fetching items:', error);
+				itemSelect.innerHTML = '<option value="">Error fetching items</option>';
+			}
+		}
+
+		// Save Reason functionality
+		document.getElementById('saveReasonBtn').addEventListener('click', async function () {
+			const reasonName = document.getElementById('newReasonName').value;
+
+			if (!reasonName) {
+				alert('Please enter a reason name.');
+				return;
+			}
+
+			try {
+				// Send the new reason to the server via AJAX
+				const response = await fetch('/Admin/Reason/Create', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ name: reasonName })
+				});
+
+				const result = await response.json();
+
+				if (result.success) {
+					// Add the new reason to the dropdown and select it
+					const reasonSelect = document.getElementById('ReasonId');
+					const newOption = document.createElement('option');
+					newOption.value = result.id;
+					newOption.text = result.name;
+					reasonSelect.appendChild(newOption);
+					reasonSelect.value = result.id;  // Select the new reason
+					$('#addReasonModal').modal('hide');  // Close the modal
+				} else {
+					alert('Error saving reason');
+				}
+			} catch (error) {
+				console.error('Error adding reason:', error);
+				alert('An error occurred while saving the reason.');
+			}
+		});
+	</script>
+}

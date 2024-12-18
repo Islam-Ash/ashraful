@@ -1,0 +1,207 @@
+﻿@model ServiceListModel
+@{
+	ViewData["Title"] = "Index";
+}
+
+@section Styles
+{
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+
+	<link rel="stylesheet" href="~/css/custom.css" />
+
+
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+}
+
+@section Scripts
+{
+	<script src="~/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/jszip/jszip.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+	<script>
+		$(function () {
+			var table = $("#services").DataTable({
+				processing: true,
+				serverSide: true,
+				responsive: true,
+				searching: true,
+				lengthChange: true,
+				autoWidth: false,
+				lengthMenu: [
+					[10, 25, 50, -1],
+					[10, 25, 50, 'All']
+				],
+				ajax: {
+					url: "/Admin/Service/GetServiceJsonData",
+					type: "POST",
+					contentType: "application/json",
+					dataType: "json",
+					data: function (d) {
+						d.SearchItem = {};
+						return JSON.stringify(d);
+					},
+				},
+				columnDefs: [
+					{
+						orderable: false,  // Disable sorting for the 'Action' column
+						targets: 3,  // Third column (Action) should not be sortable
+						render: function (data, type, row) {
+							return `
+											<div style="text-align: right;">
+												<button type="button" class="btn btn-outline-info btn-sm" style="margin-right: 5px;" onclick="window.location.href='/admin/service/update/${data}'">
+													<i class="fas fa-pencil-alt"></i> <!-- Edit icon -->
+												</button>
+												<button type="button" class="btn btn-outline-danger btn-sm show-bs-modal" data-id='${data}'>
+													<i class="fas fa-trash"></i> <!-- Delete icon -->
+												</button>
+											</div>`;
+						}
+					}
+				],
+				dom: '<"top"f>rt<"bottom"il><"clear">',
+
+				language: {
+					lengthMenu: "Items per page: _MENU_"
+				},
+
+				infoCallback: function (settings, start, end, max, total, pre) {
+					return `Total Services: ${total}`;
+				},
+
+				ordering: true,
+				order: [],
+
+			});
+
+			// Show confirmation modal for delete
+			$('#services').on('click', '.show-bs-modal', function (event) {
+				let id = $(this).data("id");
+				let modal = $("#modal-default");
+				modal.find('.modal-body p').text('Do you confirm to delete this?');
+				$("#deleteId").val(id); // Assign the ID to the hidden field
+				$("#deleteForm").attr("action", "/admin/service/delete");
+				modal.modal('show');
+			});
+
+			$("#deleteButton").click(function (event) {
+				event.preventDefault();  // Prevent the form from submitting normally
+
+				var form = $("#deleteForm");
+				var actionUrl = form.attr('action');
+				var id = $("#deleteId").val();  // Get the ID from the hidden input field
+
+				$.ajax({
+					url: actionUrl,
+					method: "POST",
+					data: {
+						id: id,
+						__RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()  // Pass the anti-forgery token
+					},
+					success: function (response) {
+						if (response.success) {
+							toastr.success(response.message);  // Show success message
+							$('#modal-default').modal('hide');  // Close the modal
+							table.ajax.reload(null, false);  // Reload the DataTable without resetting pagination
+							$('#services_processing').hide();  // Hide processing message manually if needed
+						} else {
+							toastr.error("An error occurred while deleting the service.");
+						}
+					},
+					error: function () {
+						toastr.error("An error occurred while processing the request.");
+					}
+				});
+			});
+
+
+
+			// Handle Add Service Form Submission
+			$('#addServiceForm').on('submit', function (event) {
+				event.preventDefault();  // Prevent default form submission
+
+				$.ajax({
+					url: $(this).attr('action'),
+					method: 'POST',
+					data: $(this).serialize(),
+					success: function (response) {
+						if (response.success) {
+							toastr.success(response.message);  // Display success message
+							$('#addServiceModal').modal('hide');  // Close modal
+							serviceTable.ajax.reload();  // Reload the table
+						} else {
+							toastr.error(response.message);  // Display error message
+						}
+					},
+					error: function (xhr, status, error) {
+						toastr.error("An error occurred while processing your request.");  // Display general error message
+					}
+				});
+			});
+
+		});
+	</script>
+
+
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+	<div class="container-fluid">
+		<div class="row mb-2">
+			<div class="col-sm-6">
+				<h4>Service List</h4>
+			</div>
+			<div class="col-sm-6">
+				<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item">
+						<a class="btn btn-info float-sm-right ml-2" asp-area="Admin" asp-controller="Service" asp-action="Create">
+							+Add
+						</a>
+					</li>
+				</ol>
+			</div>
+		</div>
+	</div><!-- /.container-fluid -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+	<div class="card card-info">
+		<div class="card-body">
+			<partial name="_ResponsePartial" />
+			<partial name="_ModalPartial" />
+
+			<table id="services" class="table table-bordered table-striped custom-table">
+				<thead>
+					<tr>
+						<th>Service Name</th>
+						<th>Tax Category</th>
+						<th>Price</th>
+						<th class="text-right">Action</th> <!-- Action column aligned right -->
+					</tr>
+				</thead>
+				<tbody>
+					<!-- Table rows will be dynamically generated by the DataTable AJAX call -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>
+
+
+

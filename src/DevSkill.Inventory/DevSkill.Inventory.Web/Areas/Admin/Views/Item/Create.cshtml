@@ -1,0 +1,262 @@
+﻿@model ItemCreateModel
+
+@{
+	ViewData["Title"] = "Create Item";
+}
+
+<section class="content">
+	<div class="card card-info">
+		<div class="card-header">
+			<h3 class="card-title">Add New Item</h3>
+		</div>
+		<div class="card-body">
+			<form asp-antiforgery="true" asp-area="Admin" asp-controller="Item" asp-action="Create" method="post" enctype="multipart/form-data">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="form-group">
+							<label asp-for="Name" class="control-label">Item Name*</label>
+							<input asp-for="Name" class="form-control" placeholder="Enter item name" />
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="CategoryId" class="control-label">Categories</label>
+							<select asp-for="CategoryId" class="form-control" asp-items="Model.Categories">
+								<option value="">-- Select Category --</option>
+							</select>
+							<span asp-validation-for="CategoryId" class="text-danger"></span>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="MeasurementUnitId" class="control-label">Measurement Unit</label>
+							<select asp-for="MeasurementUnitId" class="form-control" asp-items="Model.MeasurementUnits">
+								<option value="">-- Select Measurement Unit --</option>
+							</select>
+							<span asp-validation-for="MeasurementUnitId" class="text-danger"></span>
+						</div>
+
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="BuyingTaxCategoryId" class="control-label">Buying Tax</label>
+							<select asp-for="BuyingTaxCategoryId" class="form-control" asp-items="Model.BuyingTaxCategories">
+								<option value="">-- Select Buying Tax --</option>
+							</select>
+							<span asp-validation-for="BuyingTaxCategoryId" class="text-danger"></span>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="SellingTaxCategoryId" class="control-label">Selling Tax</label>
+							<select asp-for="SellingTaxCategoryId" class="form-control" asp-items="Model.SellingTaxCategories">
+								<option value="">-- Select Selling Tax --</option>
+							</select>
+							<span asp-validation-for="SellingTaxCategoryId" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="BuyingPrice" class="control-label">Buying Price*</label>
+							<input asp-for="BuyingPrice" class="form-control" placeholder="Enter buying price" />
+							<span asp-validation-for="BuyingPrice" class="text-danger"></span>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="SellingPrice" class="control-label"></label>
+							<input asp-for="SellingPrice" class="form-control" />
+							<span asp-validation-for="SellingPrice" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="Barcode" class="control-label">Barcode</label>
+							<div class="input-group">
+								<input asp-for="Barcode" class="form-control" placeholder="Enter barcode" id="Barcode" />
+								<div class="input-group-append">
+									<button class="btn btn-info btn-flat" type="button" onclick="generateBarcode()">Generate Barcode</button>
+								</div>
+							</div>
+							<span asp-validation-for="Barcode" class="text-danger"></span>
+						</div>
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label asp-for="WarrantyDuration" class="control-label">Warranty</label>
+									<input asp-for="WarrantyDuration" class="form-control" />
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label asp-for="WarrantyUnit" class="control-label">Warranty Unit</label>
+									<select asp-for="WarrantyUnit" class="form-control">
+										<option>Days</option>
+										<option>Months</option>
+										<option>Years</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<label asp-for="Description" class="control-label"></label>
+							<textarea asp-for="Description" class="form-control"></textarea>
+							<span asp-validation-for="Description" class="text-danger"></span>
+						</div>
+						<div class="row">
+							<div class=" col-md-6">
+								<div class="form-group">
+									<label asp-for="Picture" class="control-label">Upload Picture</label>
+									<input asp-for="Picture" type="file" class="form-control" />
+									@* <span asp-validation-for="Picture" class="text-danger"></span> *@
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-check">
+									<input asp-for="IsActive" class="form-check-input" />
+									<label asp-for="IsActive" class="form-check-label">Is active item?</label>
+								</div>
+							</div>
+							<div class="col-md-3">
+								<div class="form-check">
+									<input asp-for="IsSerialItem" class="form-check-input" />
+									<label asp-for="IsSerialItem" class="form-check-label">Is Serial Item?</label>
+								</div>
+							</div>
+						</div>
+						@* Submit Button *@
+						<div class="form-group mt-3">
+							<button type="submit" class="btn btn-info btn-flat">Save</button>
+							<a asp-action="Index" class="btn btn-danger">Cancel</a>
+						</div>
+					</div>
+
+					<div class="col-md-6">
+						<div class="form-group">
+							<label asp-for="StockItems" class="control-label text-center d-block text-primary">Stock Details</label>
+
+
+							<div class="row">
+								@* Dynamic Stock Section*@
+
+								<div id="stockItemsSection">
+									<div class="row">
+										<div class=" col-md-6">
+											<div class="form-group">
+												<label asp-for="CostPerUnit" class="control-label">Cost Per Unit</label>
+												<input asp-for="CostPerUnit" class="form-control" id="CostPerUnit" readonly />
+												<span asp-validation-for="CostPerUnit" class="text-danger"></span>
+											</div>
+										</div>
+										<div class=" col-md-6">
+											<div class="form-group">
+												<label asp-for="AsOfDate" class="control-label">As of Date</label>
+												<input asp-for="AsOfDate" class="form-control" type="date" />
+												<span asp-validation-for="AsOfDate" class="text-danger"></span>
+											</div>
+										</div>
+									</div>
+									<table class="table">
+										<thead>
+											<tr>
+												<th>Warehouse</th>
+												<th>Quantity</th>
+												<th>Actions</th>
+											</tr>
+										</thead>
+										<tbody id="stockItemsBody">
+											@for (int i = 0; i < Model.StockItems?.Count; i++)
+											{
+												<tr>
+													<td>
+														<select asp-for="@Model.StockItems[i].WarehouseId" class="form-control" asp-items="Model.Warehouses">
+															<option value="">-- Select Warehouse --</option>
+														</select>
+													</td>
+													<td>
+														<input asp-for="@Model.StockItems[i].Quantity" class="form-control" />
+													</td>
+													<td>
+														<button type="button" class="btn btn-danger" onclick="removeStockRow(this)">Remove</button>
+													</td>
+												</tr>
+											}
+										</tbody>
+									</table>
+									<button type="button" class="btn btn-info btn-flat" onclick="addStockRow()">Add Stock</button>
+								</div>
+
+
+							</div>
+						</div>
+					</div>
+				</div>
+
+			</form>
+		</div>
+	</div>
+</section>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+
+	<script>
+		document.getElementById("BuyingPrice").addEventListener("input", function () {
+			var buyingPrice = parseFloat(this.value);
+			if (!isNaN(buyingPrice)) {
+				document.getElementById("CostPerUnit").value = buyingPrice;
+			} else {
+				document.getElementById("CostPerUnit").value = '';
+			}
+		});
+
+		function generateBarcode() {
+			var barcode = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+			document.getElementById("Barcode").value = barcode;
+		}
+
+	</script>
+	<script>
+		let stockItemIndex = @Model.StockItems?.Count ?? 0;
+
+		function addStockRow() {
+			var stockItemsBody = document.getElementById('stockItemsBody');
+			var newRow = document.createElement('tr');
+
+			newRow.innerHTML = `
+																	<td>
+																			<select name="StockItems[${stockItemIndex}].WarehouseId" class="form-control" required>
+																				<option value="">-- Select Warehouse --</option>
+		@foreach (var warehouse in Model.Warehouses)
+		{
+																									<option value="@warehouse.Value">@warehouse.Text</option>
+		}
+																			</select>
+																		</td>
+																		<td>
+																			<input type="number" name="StockItems[${stockItemIndex}].Quantity" class="form-control" min="0" required />
+																		</td>
+																		<td>
+																			<button type="button" class="btn btn-danger" onclick="removeStockRow(this)">Remove</button>
+																		</td>`;
+
+			stockItemsBody.appendChild(newRow);
+			stockItemIndex++;
+		}
+
+		function removeStockRow(button) {
+			var row = button.closest('tr');
+			row.parentElement.removeChild(row);
+		}
+	</script>
+}

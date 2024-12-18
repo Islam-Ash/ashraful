@@ -1,0 +1,61 @@
+﻿@model RoleChangeModel
+@{
+    ViewData["Title"] = "Change Role";
+}
+
+
+<!-- Main content -->
+<section class="content">
+    <div class="card card-info">
+        <div class="row">
+            <!-- left column -->
+            <div class="col">
+                <!-- general form elements -->
+                <div class="card card-info">
+                    <div class="card-header">
+                        <h3 class="card-title">Change User Role</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                    <form asp-antiforgery="true" asp-area="Admin" asp-controller="Member" asp-action="ChangeRole" method="post">
+                        <partial name="_ResponsePartial" />
+                        <div asp-validation-summary="All" class="text-danger"></div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label asp-for="UserId">User</label>
+                                <select asp-for="UserId" asp-items="Model.Users" class="form-control" id="UserId">
+                                    <option value="">Select User</option>
+                                </select>
+                                <span asp-validation-for="UserId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="RoleId">Role</label>
+                                <select asp-for="RoleId" asp-items="Model.Roles" class="form-control" id="RoleId">
+                                    <option value="">Select Role</option>
+                                </select>
+                                <span asp-validation-for="RoleId" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <!-- /.card-body -->
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-info btn-sm">Submit</button>
+                            <a asp-action="UsersShow" class="btn btn-danger btn-sm">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.card -->
+            </div>
+            <!--/.col (left) -->
+        </div>
+        <!-- /.row -->
+    </div><!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+

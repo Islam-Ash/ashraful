@@ -1,0 +1,192 @@
+﻿@model WarehouseListModel
+@{
+	ViewData["Title"] = "Warehouse";
+}
+
+@section Styles
+{
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+	<link rel="stylesheet" href="~/css/custom.css" />
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+}
+
+@section Scripts
+{
+	<script src="~/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+	<script src="~/adminlte/plugins/jszip/jszip.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
+	<script src="~/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+	<script src="~/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+	<script>
+
+		$(function () {
+			var table = $("#warehouses").DataTable({
+				processing: true,
+				serverSide: true,
+				responsive: true,
+				searching: false,
+				lengthChange: true,
+				autoWidth: false,
+				lengthMenu: [
+					[10, 25, 50, -1],
+					[10, 25, 50, 'All']
+				],
+				ajax: {
+					url: "/Admin/Warehouse/GetWarehouseJsonData",
+					type: "POST",
+					contentType: "application/json",
+					dataType: "json",
+					data: function (d) {
+						d.SearchItem = {};
+						return JSON.stringify(d);
+					},
+				},
+				columnDefs: [
+					{
+						orderable: false,
+						targets: 1,
+						render: function (data, type, row) {
+							return `
+												<div style="text-align: right;">
+																 <button type="button" class="btn btn-outline-info btn-sm" style="margin-right: 5px;" onclick="window.location.href='/admin/warehouse/update/${data}'">
+																		<i class="fas fa-pencil-alt"></i>
+																	</button>
+
+															<button type="button" class="btn btn-outline-danger btn-sm show-bs-modal" data-id='${data}'>
+														<i class="fas fa-trash"></i>
+													</button>
+												</div>`;
+						}
+					}
+				],
+				dom: '<"top"f>rt<"bottom"il><"clear">',
+				language: {
+					lengthMenu: "Items per page: _MENU_"
+				},
+				infoCallback: function (settings, start, end, max, total, pre) {
+					return `Total Warehouses: ${total}`;
+				},
+				ordering: true,
+				order: [], // No default order
+
+
+			});
+
+			// Show confirmation modal for delete
+			$('#warehouses').on('click', '.show-bs-modal', function (event) {
+				let id = $(this).data("id");
+				let modal = $("#modal-default");
+				modal.find('.modal-body p').text('Do you confirm to delete this warehouse?');
+				$("#deleteId").val(id);
+				$("#deleteForm").attr("action", "/admin/warehouse/delete");
+				modal.modal('show');
+			});
+
+			// Handle delete button click
+			$("#deleteButton").click(function (event) {
+				event.preventDefault();
+				var form = $("#deleteForm");
+				var actionUrl = form.attr('action');
+				var id = $("#deleteId").val();
+
+				$.ajax({
+					url: actionUrl,
+					method: "POST",
+					data: {
+						id: id,
+						__RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+					},
+					success: function (response) {
+						if (response.success) {
+							toastr.success(response.message);
+							$('#modal-default').modal('hide');
+							$('#warehouses').DataTable().ajax.reload(null, false);
+							$('#warehouses_processing').hide();
+						} else {
+							toastr.error(response.message);
+						}
+					},
+					error: function () {
+						toastr.error("An error occurred while processing the request.");
+					}
+				});
+			});
+
+			// Handle add warehouse form submission
+			$('#addWarehouseForm').on('submit', function (event) {
+				event.preventDefault();
+				$.ajax({
+					url: $(this).attr('action'),
+					method: 'POST',
+					data: $(this).serialize(),
+					success: function (response) {
+						if (response.success) {
+							toastr.success(response.message);
+							$('#addWarehouseModal').modal('hide');
+							$('#warehouses').DataTable().ajax.reload(null, false);
+							$('#warehouses_processing').hide();
+						} else {
+							toastr.error("Error: " + response.message);
+						}
+					},
+					error: function () {
+						toastr.error("There was an error processing the request.");
+					}
+				});
+			});
+
+		});
+	</script>
+}
+
+<!-- Content Header (Page header) -->
+<section class="content-header">
+	<div class="container-fluid">
+		<div class="row mb-2">
+			<div class="col-sm-6">
+				<h4>Warehouse List</h4>
+			</div>
+			<div class="col-sm-6">
+				<ol class="breadcrumb float-sm-right">
+					<li class="breadcrumb-item">
+						<a href="#" class="btn btn-info float-sm-right ml-2" data-toggle="modal" data-target="#addWarehouseModal">
+							+Add
+						</a>
+					</li>
+				</ol>
+			</div>
+		</div>
+	</div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+	<div class="card card-info">
+		<div class="card-body">
+			<partial name="_ResponsePartial" />
+			<partial name="_ModalPartial" />
+			@await Html.PartialAsync("/Areas/Admin/Views/Shared/_WarehouseModal.cshtml")
+
+			<table id="warehouses" class="table table-bordered table-striped custom-table">
+				<thead>
+					<tr>
+						<th class="table-header">Name</th>
+						<th class="table-header text-right">Action</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</section>

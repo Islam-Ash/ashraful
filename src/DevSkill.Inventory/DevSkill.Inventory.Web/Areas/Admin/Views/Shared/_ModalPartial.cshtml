@@ -1,0 +1,22 @@
+﻿
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="modal-default" tabindex="-1" role="dialog" aria-labelledby="modal-default-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border: 1px solid #ddd;">
+            <div class="modal-header" style="background-color: #f8d7da; border-bottom: 1px solid #ddd;">
+                <h5 class="modal-title text-danger" id="modal-default-label"><i class="fas fa-exclamation-triangle"></i> Warning!</h5>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 10px; background-color: #f7f7f7;">
+                <p>Do you confirm to delete this?</p>
+                <input type="hidden" id="deleteId" name="deleteId" value="">
+            </div>
+            <div class="modal-footer" style="justify-content: center; text-align: right; padding: 10px;">
+                <form id="deleteForm" method="post">
+                    <button type="submit" id="deleteButton" class="btn btn-danger" style="margin-right: 5px;">YES</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">NO</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

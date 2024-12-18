@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: . 
+      dockerfile: DevSkill.Inventory.Web/Dockerfile  
+    ports:
+      - "8000:80"  
+
+    depends_on:
+      - worker  
+
+  worker:
+    build:
+      context: . 
+      dockerfile: DevSkill.Inventory.Worker/Dockerfile 
+    volumes:
+      - ./TempProductImages:/src/TempProductImages  
+    entrypoint: ["dotnet", "DevSkill.Inventory.Worker.dll"]  
+

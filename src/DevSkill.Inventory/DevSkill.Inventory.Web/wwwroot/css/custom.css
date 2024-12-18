@@ -1,0 +1,95 @@
+﻿/* custom.css */
+.custom-table th.table-header {
+    background-color: #0096a0;
+    color: white;
+    text-align: left;
+    padding: 10px;
+    font-size: 16px;
+    border-top: none;
+    border-bottom: none;
+}
+
+.custom-table th.text-right,
+.custom-table td.text-right {
+    text-align: right;
+}
+
+.custom-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.custom-table .btn {
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+.custom-table .btn-info {
+    background-color: #0096a0;
+    border-color: #0096a0;
+}
+
+.custom-table .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.custom-table .btn i {
+    margin-right: 5px;
+}
+
+.custom-table tbody tr {
+    height: 50px;
+}
+
+.dataTables_length {
+    float: right;
+}
+
+.dataTables_info {
+    float: left;
+    font-size: 16px;
+}
+
+.dataTables_paginate {
+    display: none;
+}
+
+/* custom.css */
+.custom-table {
+    border-collapse: collapse; /* Ensure borders collapse */
+    width: 100%; /* Optional: Set table width */
+}
+    .custom-table th {
+        background-color: #0096a0; 
+        color: white; 
+        padding: 10px; 
+    }
+
+    .custom-table td {
+        border-bottom: 1px solid #dee2e6; 
+        padding: 10px; 
+    }
+    .custom-table th, .custom-table td {
+        border-left: none; /* Remove left border */
+        border-right: none; /* Remove right border */
+    }
+
+
+    .custom-table tbody tr {
+        border-bottom: none;
+    }
+
+    .custom-table .btn-outline-info, .custom-table .btn-outline-danger {
+        border-radius: 4px; /* Optional: for rounded button corners */
+        padding: 3px 8px; /* Adjust padding for a smaller, compact button */
+        display: inline-flex; /* Align icon and text inline */
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-table .btn-sm i {
+        margin-right: 4px; /* Optional: Add space between icon and text if needed */
+    }
+
+
+

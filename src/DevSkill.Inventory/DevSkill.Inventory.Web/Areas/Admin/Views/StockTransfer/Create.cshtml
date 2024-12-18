@@ -1,0 +1,157 @@
+﻿@model StockTransferCreateModel
+
+@{
+	ViewData["Title"] = "Create Transfer";
+}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<section class="content">
+
+	<div class="card card-info">
+		<div class="card-header">
+			<h3 class="card-title">Create StockTransfer</h3>
+		</div>
+		<div class="card-body">
+			<form asp-antiforgery="true" asp-area="Admin" asp-controller="StockTransfer" asp-action="Create">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="form-group">
+							<input type="datetime-local" class="form-control" id="Date" name="Date" value="@Model.TransferDate.ToString("yyyy-MM-ddTHH:mm")" />
+							<span asp-validation-for="TransferDate" class="text-danger"></span>
+						</div>
+					</div>
+					<div class=" col-md-4">
+						<div class="form-group">
+							<select asp-for="SourceWarehouseId" class="form-control" asp-items="Model.Warehouses" id="sourceWarehouseSelect">
+								<option value="">Warehouse From</option>
+							</select>
+							<span asp-validation-for="SourceWarehouseId" class="text-danger"></span>
+						</div>
+					</div>
+
+					<div class=" col-md-4">
+						<div class="form-group">
+							<select asp-for="DestinationWarehouseId" class="form-control" asp-items="Model.Warehouses" id="destinationWarehouseSelect">
+								<option value="">Warehouse To</option>
+							</select>
+							<span asp-validation-for="DestinationWarehouseId" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							<label asp-for="ItemId" class="control-label">Item</label>
+							<select asp-for="ItemId" class="form-control" id="itemSelect">
+								<option value="">Select Item</option>
+							</select>
+							<span asp-validation-for="ItemId" class="text-danger"></span>
+						</div>
+					</div>
+					<div class="col-md-4">
+						<div class="form-group">
+							<label asp-for="TransferQuantity" class="control-label">Transfer Quantity</label>
+							<input asp-for="TransferQuantity" class="form-control" />
+							<span asp-validation-for="TransferQuantity" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-sm-12">
+						<div class="form-group">
+							<label asp-for="Notes" class="control-label">Notes</label>
+							<textarea asp-for="Notes" class="form-control"></textarea>
+							<span asp-validation-for="Notes" class="text-danger"></span>
+						</div>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-info btn-flat">Submit</button>
+				<a asp-action="Index" class="btn btn-danger">Cancel</a>
+			</form>
+		</div>
+	</div>
+</section>
+
+@section Scripts {
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+	<script>
+		$(document).ready(function () {
+
+
+			$('#sourceWarehouseSelect').on('change', function () {
+				const warehouseId = $(this).val();
+				const itemSelect = $('#itemSelect');
+				itemSelect.empty().append('<option value="">Select Item</option>'); // Clear previous items
+
+				if (warehouseId) {
+					$('#additionalFields').show();
+
+					// Fetch items based on the selected warehouse
+					$.ajax({
+						url: '@Url.Action("GetItemsByWarehouse", "StockTransfer")',
+						type: 'GET',
+						data: { warehouseId: warehouseId },
+						success: function (data) {
+							if (data.length > 0) {
+								$.each(data, function (index, item) {
+									itemSelect.append($('<option></option>').val(item.id).text(item.name + ' (Qty: ' + item.quantity + ')'));
+								});
+							} else {
+								itemSelect.append('<option value="">No items found</option>');
+							}
+						},
+						error: function () {
+							itemSelect.append('<option value="">Error fetching items</option>');
+						}
+					});
+				} else {
+					$('#additionalFields').hide();
+				}
+			});
+
+			$('#destinationWarehouseSelect').on('change', validateWarehouses);
+			$('#sourceWarehouseSelect').on('change', validateWarehouses);
+
+			$('#stockTransferForm').on('submit', function (e) {
+				if (!validateWarehouses()) {
+					e.preventDefault(); // Prevent form submission if validation fails
+				}
+			});
+
+			function validateWarehouses() {
+				const sourceWarehouseId = $('#sourceWarehouseSelect').val();
+				const destinationWarehouseId = $('#destinationWarehouseSelect').val();
+
+				if (sourceWarehouseId && destinationWarehouseId && sourceWarehouseId === destinationWarehouseId) {
+					showToast('Source and Destination warehouses cannot be the same.', 'error');
+					return false;
+				}
+				return true;
+			}
+
+			function showToast(message, type) {
+				if (type === 'error') {
+					toastr.error(message);
+				} else {
+					toastr.success(message); // You can customize success messages as well
+				}
+			}
+		});
+
+		// You might want to add server-side error handling to show Toastr notifications here
+		@if (ViewData.ModelState.IsValid == false)
+		{
+			var errors = ViewData.ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+			foreach (var error in errors)
+			{
+				<text>showToast('@error', 'error'); </text>
+			}
+		}
+	</script>
+
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+}
+

@@ -1,0 +1,41 @@
+﻿@model DevSkill.Inventory.Web.Areas.Admin.Models.RoleEditModel
+
+@{
+	ViewBag.Title = "Edit Role";
+}
+
+
+<section class="content">
+	<div class="card card-info">
+		<div class="row">
+			<!-- left column -->
+			<div class="col">
+				<!-- general form elements -->
+				<div class="card card-info">
+					<div class="card-header">
+						<h3 class="card-title">Edit Role</h3>
+					</div>
+					<form asp-action="EditRole" method="post">
+						<input type="hidden" asp-for="Id" />
+
+						<!-- Don't bind NormalizedName directly, it's handled by the controller -->
+						<input type="hidden" asp-for="NormalizedName" />
+
+						<div class="form-group">
+							<label for="Name">Role Name</label>
+							<input type="text" asp-for="Name" class="form-control" />
+							<span asp-validation-for="Name" class="text-danger"></span>
+						</div>
+
+						<div class="form-group">
+							<button type="submit" class="btn btn-info btn-flat">Update Role</button>
+							<a asp-action="RolesShow" class="btn btn-danger">Cancel</a>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+</section>
+
+
+

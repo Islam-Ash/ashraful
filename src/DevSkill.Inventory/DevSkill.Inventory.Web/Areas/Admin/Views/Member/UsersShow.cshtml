@@ -1,0 +1,104 @@
+﻿@model List<DevSkill.Inventory.Web.Areas.Admin.Models.UserViewModel>
+@{
+    ViewData["Title"] = "Users List";
+}
+
+@section Styles
+{
+    <link rel="stylesheet" href="~/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+    <link rel="stylesheet" href="~/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/custom.css" />
+
+    <style>
+       
+        th {
+            background-color: #17a2b8; 
+            color: white; 
+        }
+    </style>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h4>User List</h4>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item">
+                        <a class="btn btn-info float-sm-right ml-2" asp-area="Admin" asp-controller="Member" asp-action="changeRole">
+                            Change Role
+                        </a>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="card card-info">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>UserName</th>
+                        <th>Email</th>
+                        <th>Roles</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>@user.FirstName</td>
+                            <td>@user.Email</td>
+                            <td>@user.Roles</td>
+                            <td>
+                                <!-- You can add actions like Edit, Delete, etc. -->
+                                
+                                <a href="@Url.Action("DeleteUser", "Member", new { id = user.Id })" class="btn btn-danger btn-sm">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+@section Scripts
+{
+    <script src="~/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.table').DataTable({
+                responsive: true,
+                autoWidth: false,
+                language: {
+                    emptyTable: "No roles available",
+                    lengthMenu: "Items per page: _MENU_"
+                },
+                dom: '<"top"f>rt<"bottom"lp><"clear">', // Custom layout: search bar at the top, pagination at the bottom
+                initComplete: function () {
+                    // Move the 'length' dropdown to the bottom-right
+                    $('.dataTables_length').appendTo('.dataTables_wrapper .bottom').css({
+                        'float': 'right'  // Move the items per page dropdown to the right
+                    });
+                }
+            });
+        });
+    </script>
+}
